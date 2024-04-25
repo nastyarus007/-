@@ -1,0 +1,71 @@
+df <- read.csv("C:/Users/nasty/Downloads/chr-pos.csv")
+View(df)
+
+## Гистограмма по всем хромосомам - для каждого из источников
+# Создание суммарной таблицы
+summary_table <- df %>%
+  group_by(chromosome) %>%
+  summarise(across(starts_with("in"), sum))
+
+# Построение гистограмм
+for (col in colnames(summary_table)[-1]) {
+  p <- ggplot(summary_table, aes(x = chromosome, y = !!as.name(col), fill = chromosome)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Chromosome", y = "Count", fill = "Chromosome") +
+    ggtitle(paste("Histogram of", col))
+  
+  print(p)  # Вывод графика
+}
+
+
+
+## Гистограмма для каждой уникальной переменной в chromosome
+# Создание суммарной таблицы
+summary_table <- df %>%
+  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  group_by(chromosome, variable) %>%
+  summarise(total = sum(value))
+
+# Построение гистограммы
+ggplot(summary_table, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ chromosome, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for each Chromosome")
+
+
+
+
+## Отдельные гистограммы для аутосом, половых хромосом и митохондриалки
+# Разделение данных на две группы: chrX, chrY, chrMT и остальные
+df_chr <- df %>%
+  filter(chromosome %in% c("chrX", "chrY", "chrMT"))
+
+df_other <- df %>%
+  filter(!(chromosome %in% c("chrX", "chrY", "chrMT")))
+
+# Создание суммарных таблиц для каждой группы
+summary_table_chr <- df_chr %>%
+  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  group_by(chromosome, variable) %>%
+  summarise(total = sum(value))
+
+summary_table_other <- df_other %>%
+  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  group_by(variable) %>%
+  summarise(total = sum(value))
+
+# Построение гистограмм для chrX, chrY, chrMT
+p_chr <- ggplot(summary_table_chr, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ chromosome, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for chrX, chrY, chrMT")
+p_chr
+
+# Построение общей гистограммы для остальных переменных
+p_other <- ggplot(summary_table_other, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for other chromosomes")
+p_other
