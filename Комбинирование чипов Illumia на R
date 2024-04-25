@@ -1,9 +1,14 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
 install.packages("dplyr")
 library(dplyr)
 
 #создает и приводит к нужному виду df с данными генотека
 vcf <- fread("C:/Users/nasty/Downloads/genotek_rawdata.vcf")
 genotek <- data.frame(chromosome = vcf$`#CHROM`, position = vcf$POS)
+genotek$chromosome <- ifelse(genotek$chromosome == "chrM", "chrMT", genotek$chromosome)
 colnames(genotek)  <- c("chromosome", "position")  
 
 
@@ -29,6 +34,10 @@ omni = read.table("C:/Users/nasty/Downloads/illumina_omni_4.5.bim")
 omni <- data.frame(chromosome = omni$V1, position = omni$V4)
 omni <- subset(omni, chromosome != 0)
 omni$chromosome <- paste("chr", omni$chromosome, sep = "")
+omni$chromosome <- ifelse(omni$chromosome == "chr23", "chrX", omni$chromosome)
+omni$chromosome <- ifelse(omni$chromosome == "chr24", "chrY", omni$chromosome)
+omni$chromosome <- ifelse(omni$chromosome == "chr25", "chrY", omni$chromosome)
+omni$chromosome <- ifelse(omni$chromosome == "chr26", "chrMT", omni$chromosome)
 View(omni)
 
 
@@ -46,6 +55,7 @@ combined$in_humori <- 0
 combined$in_andme <- 0
 combined$in_genotek <- 0
 
+View(combined)
 
 #сохранение csv таблиц в нужном нам формате 
 write.csv(genotek, "C:/Users/nasty/Downloads/genotek.csv", row.names = FALSE)
@@ -54,6 +64,8 @@ write.csv(omni, "C:/Users/nasty/Downloads/omni.csv", row.names = FALSE)
 write.csv(humori1240, "C:/Users/nasty/Downloads/humori1240.csv", row.names = FALSE)
 
 write.csv(combined, "C:/Users/nasty/Downloads/combined.csv", row.names = FALSE)
+
+
 
 #для дальнейшего подсчета пересечений и внесения информации в столбцы "in" - обращаемся к коду на питоне. затем для визуализации возвращаемся в R
 
