@@ -55,7 +55,7 @@ write.csv(humori1240, "C:/Users/nasty/Downloads/humori1240.csv", row.names = FAL
 
 write.csv(combined, "C:/Users/nasty/Downloads/combined.csv", row.names = FALSE)
 
-
+#для дальнейшего подсчета пересечений и внесения информации в столбцы "in" - обращаемся к коду на питоне. затем для визуализации возвращаемся в R
 
 df <- fread("C:/Users/nasty/Downloads/chr-pos.csv")
 View(df)
