@@ -1,0 +1,27 @@
+import pandas as pd
+import numpy as np
+
+# читает все полученные таблицы
+combined = pd.read_csv('C:/Users/nasty/Downloads/combined.csv')
+genotek = pd.read_csv('C:/Users/nasty/Downloads/genotek.csv')
+andme = pd.read_csv('C:/Users/nasty/Downloads/andme.csv')
+omni = pd.read_csv('C:/Users/nasty/Downloads/omni.csv')
+humori = pd.read_csv('C:/Users/nasty/Downloads/humori1240.csv')
+
+# проверяет пересечения каждой из таблиц с combined, записывает в отдельную переменную
+cond1 = (combined['chromosome'].isin(genotek['chromosome'])) & (combined['position'].isin(genotek['position']))
+cond2 = (combined['chromosome'].isin(andme['chromosome'])) & (combined['position'].isin(andme['position']))
+cond3 = (combined['chromosome'].isin(humori['chromosome'])) & (combined['position'].isin(humori['position']))
+cond4 = (combined['chromosome'].isin(omni['chromosome'])) & (combined['position'].isin(omni['position']))
+
+# присваивает 1 - 'Found' или 0 -'Not Found' в зависимости от условия по каждой переменной
+combined['in_genotek'] = np.where(cond1, '1', '0')
+combined['in_andme'] = np.where(cond2, '1', '0')
+combined['in_humori'] = np.where(cond3, '1', '0')
+combined['in_omni'] = np.where(cond4, '1', '0')
+
+# сохраняет новую таблицу с прописанными пересечениями
+combined.to_csv('C:/Users/nasty/Downloads/chr-pos.csv', index=False)
+
+#print(combined.head(10))
+
