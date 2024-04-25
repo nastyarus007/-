@@ -1,0 +1,62 @@
+install.packages("dplyr")
+library(dplyr)
+
+#создает и приводит к нужному виду df с данными генотека
+vcf <- fread("C:/Users/nasty/Downloads/genotek_rawdata.vcf")
+genotek <- data.frame(chromosome = vcf$`#CHROM`, position = vcf$POS)
+colnames(genotek)  <- c("chromosome", "position")  
+
+
+View(vcf)
+View(genotek)
+
+
+#создает и приводит к нужному виду df с данными 23andme
+andme = read.table("C:/Users/nasty/Downloads/23andme_new.txt", header=TRUE)
+andme <- data.frame(chromosome = andme$chromosome, position = andme$position)
+andme$chromosome <- paste("chr", andme$chromosome, sep = "")
+View(andme)
+
+
+#создает и приводит к нужному виду df с данными humori
+humori = read.table("C:/Users/nasty/Downloads/humori1240.bed")
+humori1240 <- data.frame(chromosome = humori$V1, position = humori$V2)
+View(humori1240)
+
+
+#создает и приводит к нужному виду df с данными omni
+omni = read.table("C:/Users/nasty/Downloads/illumina_omni_4.5.bim")
+omni <- data.frame(chromosome = omni$V1, position = omni$V4)
+omni <- subset(omni, chromosome != 0)
+omni$chromosome <- paste("chr", omni$chromosome, sep = "")
+View(omni)
+
+
+#создает df combined, где будут собраны и отсортированы все уникальные строки из 3х таблиц, за исключением omni
+combined <- bind_rows(genotek, andme, humori1240) %>%
+  distinct()
+combined <- arrange(combined, chromosome, position)
+
+
+#создает столбцы для дальнейших обозначений пересечений каждой из таблиц с таблицей combined,
+#где 0 - отсутствие пересечения, 1 - наличие пересечения
+#по умолчанию проставляю везде 0
+combined$in_omni <- 0
+combined$in_humori <- 0
+combined$in_andme <- 0
+combined$in_genotek <- 0
+
+
+#сохранение csv таблиц в нужном нам формате 
+write.csv(genotek, "C:/Users/nasty/Downloads/genotek.csv", row.names = FALSE)
+write.csv(andme, "C:/Users/nasty/Downloads/andme.csv", row.names = FALSE)
+write.csv(omni, "C:/Users/nasty/Downloads/omni.csv", row.names = FALSE)
+write.csv(humori1240, "C:/Users/nasty/Downloads/humori1240.csv", row.names = FALSE)
+
+write.csv(combined, "C:/Users/nasty/Downloads/combined.csv", row.names = FALSE)
+
+
+
+df <- fread("C:/Users/nasty/Downloads/chr-pos.csv")
+View(df)
+
