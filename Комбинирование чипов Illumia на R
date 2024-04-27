@@ -24,9 +24,9 @@ View(andme)
 
 
 #создает и приводит к нужному виду df с данными humori
-humori = read.table("C:/Users/nasty/Downloads/humori1240.bed")
-humori1240 <- data.frame(chromosome = humori$V1, position = humori$V2)
-View(humori1240)
+humori1240 = read.table("C:/Users/nasty/Downloads/humori1240.bed")
+humori <- data.frame(chromosome = humori1240$V1, position = humori$V2)
+View(humori)
 
 
 #создает и приводит к нужному виду df с данными omni
@@ -41,19 +41,30 @@ omni$chromosome <- ifelse(omni$chromosome == "chr26", "chrMT", omni$chromosome)
 View(omni)
 
 
+#создает и приводит к нужному виду df с данными FTDNA
+ftdna <- read.csv("C:/Users/nasty/Downloads/FTDNA-FF.csv")
+ftdna <- data.frame(chromosome = ftdna$CHROMOSOME, position = ftdna$POSITION)
+ftdna <- subset(ftdna, chromosome != 0)
+ftdna$chromosome <- paste("chr", ftdna$chromosome, sep = "")
+ftdna$chromosome <- ifelse(ftdna$chromosome == "chrXY", "chrY", ftdna$chromosome)
+View(ftdna)
+
+
+
 #создает df combined, где будут собраны и отсортированы все уникальные строки из 3х таблиц, за исключением omni
-combined <- bind_rows(genotek, andme, humori1240) %>%
+combined <- bind_rows(genotek, andme, humori, ftdna) %>%
   distinct()
 combined <- arrange(combined, chromosome, position)
-
+View(combined)
 
 #создает столбцы для дальнейших обозначений пересечений каждой из таблиц с таблицей combined,
 #где 0 - отсутствие пересечения, 1 - наличие пересечения
 #по умолчанию проставляю везде 0
-combined$in_omni <- 0
-combined$in_humori <- 0
-combined$in_andme <- 0
-combined$in_genotek <- 0
+combined$omni <- 0
+combined$humori <- 0
+combined$andme <- 0
+combined$genotek <- 0
+combined$ftdna <- 0
 
 View(combined)
 
@@ -61,7 +72,8 @@ View(combined)
 write.csv(genotek, "C:/Users/nasty/Downloads/genotek.csv", row.names = FALSE)
 write.csv(andme, "C:/Users/nasty/Downloads/andme.csv", row.names = FALSE)
 write.csv(omni, "C:/Users/nasty/Downloads/omni.csv", row.names = FALSE)
-write.csv(humori1240, "C:/Users/nasty/Downloads/humori1240.csv", row.names = FALSE)
+write.csv(humori, "C:/Users/nasty/Downloads/humori.csv", row.names = FALSE)
+write.csv(ftdna, "C:/Users/nasty/Downloads/ftdna.csv", row.names = FALSE)
 
 write.csv(combined, "C:/Users/nasty/Downloads/combined.csv", row.names = FALSE)
 
