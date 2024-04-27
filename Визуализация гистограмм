@@ -1,3 +1,4 @@
+
 df <- read.csv("C:/Users/nasty/Downloads/chr-pos.csv")
 View(df)
 
@@ -22,7 +23,7 @@ for (col in colnames(summary_table)[-1]) {
 ## Гистограмма для каждой уникальной переменной в chromosome
 # Создание суммарной таблицы
 summary_table <- df %>%
-  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
   group_by(chromosome, variable) %>%
   summarise(total = sum(value))
 
@@ -46,12 +47,12 @@ df_other <- df %>%
 
 # Создание суммарных таблиц для каждой группы
 summary_table_chr <- df_chr %>%
-  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
   group_by(chromosome, variable) %>%
   summarise(total = sum(value))
 
 summary_table_other <- df_other %>%
-  pivot_longer(cols = starts_with("in"), names_to = "variable", values_to = "value") %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
   group_by(variable) %>%
   summarise(total = sum(value))
 
