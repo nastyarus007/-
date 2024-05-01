@@ -1,0 +1,41 @@
+import warnings
+
+import pandas as pd
+
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+
+
+def get_chromosome_df(df, chromosome_name):
+    chromosome_df = df[df['chromosome'] == chromosome_name]
+    chromosome_df = chromosome_df.drop('chromosome', axis=1)
+    return chromosome_df
+
+
+def get_chromosome_df2(df, chromosome_name):
+    chromosome_df = df[df['chromosome'] == chromosome_name]
+    chromosome_df = chromosome_df[['position']]
+    return chromosome_df
+
+
+exome = pd.read_csv('C:/Users/nasty/Downloads/exome.csv')
+df = pd.read_csv('C:/Users/nasty/Downloads/df.csv')
+df = df.drop('exome', axis=1)
+
+my_exome = pd.Series({'exome': []})
+for chromosome in sorted(set(df['chromosome'])):
+    chip_chromosome_df = get_chromosome_df2(df, chromosome)
+    exome_chromosome_df = get_chromosome_df(exome, chromosome)
+    columns = pd.DataFrame()
+    for i in range(0, len(exome_chromosome_df.index)):
+        # print('Processing {0} chromosome {1}/{2}'.format(chromosome, i, len(exome_chromosome_df.index)))
+        condition_result = chip_chromosome_df['position'].between(
+            exome_chromosome_df['start_position'].iloc[i],
+            exome_chromosome_df['end_position'].iloc[i]
+        )
+        if condition_result.sum() > 0:
+            columns[i] = condition_result
+    print('{0} chromosome processed'.format(chromosome))
+    my_chromosome = columns.any(axis=1).astype(int)
+    my_exome = pd.concat([my_exome, my_chromosome])
+df['exome'] = my_exome
+df.to_csv('exome_df.csv', index=False)
