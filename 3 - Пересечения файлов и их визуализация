@@ -1,0 +1,215 @@
+
+df <- read.csv("C:/Users/nasty/Downloads/chr-pos.csv")
+View(df)
+
+## Гистограмма по всем хромосомам - для каждого из источников
+# Создание суммарной таблицы
+summary_table <- df %>%
+  group_by(chromosome) %>%
+  summarise(across(starts_with("in"), sum))
+
+# Построение гистограмм
+for (col in colnames(summary_table)[-1]) {
+  p <- ggplot(summary_table, aes(x = chromosome, y = !!as.name(col), fill = chromosome)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Chromosome", y = "Count", fill = "Chromosome") +
+    ggtitle(paste("Histogram of", col))
+  
+  print(p)  # Вывод графика
+}
+
+
+
+## Гистограмма для каждой уникальной переменной в chromosome
+# Создание суммарной таблицы
+summary_table <- df %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
+  group_by(chromosome, variable) %>%
+  summarise(total = sum(value))
+
+# Построение гистограммы
+ggplot(summary_table, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ chromosome, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for each Chromosome")
+
+
+
+
+## Отдельные гистограммы для аутосом, половых хромосом и митохондриалки
+# Разделение данных на две группы: chrX, chrY, chrMT и остальные
+df_chr <- df %>%
+  filter(chromosome %in% c("chrX", "chrY", "chrMT"))
+
+df_other <- df %>%
+  filter(!(chromosome %in% c("chrX", "chrY", "chrMT")))
+
+# Создание суммарных таблиц для каждой группы
+summary_table_chr <- df_chr %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
+  group_by(chromosome, variable) %>%
+  summarise(total = sum(value))
+
+summary_table_other <- df_other %>%
+  pivot_longer(cols = c(genotek, andme, humori, ftdna, omni), names_to = "variable", values_to = "value") %>%
+  group_by(variable) %>%
+  summarise(total = sum(value))
+
+# Построение гистограмм для chrX, chrY, chrMT
+p_chr <- ggplot(summary_table_chr, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ chromosome, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for chrX, chrY, chrMT")
+p_chr
+
+# Построение общей гистограммы для остальных переменных
+p_other <- ggplot(summary_table_other, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Total Counts for other chromosomes")
+p_other
+
+
+
+
+
+
+
+
+
+## Создаём суммарные файлы с уникальными значениями
+ag <- bind_rows(genotek, andme) %>%
+  distinct()
+af <- bind_rows(ftdna, andme) %>%
+  distinct()
+fh <- bind_rows(ftdna, humori) %>%
+ distinct()
+fg <- bind_rows(genotek, ftdna) %>%
+  distinct()
+hg <- bind_rows(genotek, humori) %>%
+  distinct()
+ha <- bind_rows(humori, andme) %>%
+  distinct()
+
+
+my_list <- list(ag = ag, af = af, fh = fh, fg = fg, hg = hg, ha = ha)
+
+for (i in seq_along(my_list)) {
+  # Выводим имя переменной и индекс
+  cat(names(my_list)[i], i, "\n")
+  # Разделение суммарных данных на две группы: chrX, chrY, chrMT и остальные
+  X <- my_list[[i]] %>%
+    filter(chromosome %in% c("chrX"))
+  Y <- my_list[[i]] %>%
+    filter(chromosome %in% c("chrY"))
+  MT <- my_list[[i]] %>%
+    filter(chromosome %in% c("chrMT"))
+  other <- my_list[[i]] %>%
+    filter(!(chromosome %in% c("chrX", "chrY", "chrMT")))
+  # Получаем информацию о количестве строк суммарных файлов половых хромосом и митохондриалки
+  X_info <- nrow(X)
+  Y_info <- nrow(Y)
+  MT_info <- nrow(MT)
+  aut_info <- nrow(other)
+  cat("X:", X_info, "\nY:", Y_info, "\nMT:", MT_info, "\nAutosome:", aut_info, "\n\n")
+}
+
+
+
+
+## Создаём пересечение файлов
+ag_match <- intersect(andme, genotek)
+af_match <- intersect(andme, ftdna)
+fh_match <- intersect(humori, ftdna)
+fg_match <- intersect(ftdna, genotek)
+hg_match <- intersect(humori, genotek)
+ha_match <- intersect(andme, humori)
+
+
+my_match_list <- list(ag_match = ag_match, af_match = af_match, fh_match = fh_match, 
+                      fg_match = fg_match, hg_match = hg_match, ha_match = ha_match)
+
+for (i in seq_along(my_match_list)) {
+  # Выводим имя переменной и индекс
+  cat(names(my_match_list)[i], i, "\n")
+  # Разделение данных о пересечениях на две группы: chrX, chrY, chrMT и остальные
+  X <- my_match_list[[i]] %>%
+    filter(chromosome %in% c("chrX"))
+  Y <- my_match_list[[i]] %>%
+    filter(chromosome %in% c("chrY"))
+  MT <- my_match_list[[i]] %>%
+    filter(chromosome %in% c("chrMT"))
+  other <- my_match_list[[i]] %>%
+    filter(!(chromosome %in% c("chrX", "chrY", "chrMT")))
+  # Получаем информацию о количестве строк в файлах пересечений половых хромосом и митохондриалки
+  X_match_info <- nrow(X)
+  Y_match_info <- nrow(Y)
+  MT_match_info <- nrow(MT)
+  aut_match_info <- nrow(other)
+  cat("X:", X_match_info, "\nY:", Y_match_info, "\nMT:", MT_match_info, "\nAutosome:", aut_match_info, "\n\n")
+}
+
+**Далее вручную для ускорения процесса полученные данные поместила в таблицу df_kb**
+df_kb <- data.frame(perekritia, summX, matchingX, summY, matchingY, summMT, matchingMT, summAUT, matchingAUT)
+
+
+
+
+## Визуализация
+## Создаем 4 графика - для половых хромосом + митохондриалка и аутосом
+# Для X
+summary_table_X_kb <- df_kb %>%
+  pivot_longer(cols = c(summX, matchingX), names_to = "variable", values_to = "value") %>%
+  group_by(perekritia, variable) %>%
+  summarise(total = sum(value))
+
+pX_kb <- ggplot(summary_table_X_kb, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ perekritia, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Kb of unique data in total and with overlaps")
+pX_kb
+
+
+# Для Y
+summary_table_Y_kb <- df_kb %>%
+  pivot_longer(cols = c(summY, matchingY), names_to = "variable", values_to = "value") %>%
+  group_by(perekritia, variable) %>%
+  summarise(total = sum(value))
+
+pY_kb <- ggplot(summary_table_Y_kb, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ perekritia, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Kb of unique data in total and with overlaps")
+pY_kb
+
+
+# Для MT
+summary_table_MT_kb <- df_kb %>%
+  pivot_longer(cols = c(summMT, matchingMT), names_to = "variable", values_to = "value") %>%
+  group_by(perekritia, variable) %>%
+  summarise(total = sum(value))
+
+pMT_kb <- ggplot(summary_table_MT_kb, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ perekritia, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Kb of unique data in total and with overlaps")
+pMT_kb
+
+
+# Для аутосом
+summary_table_AUT_kb <- df_kb %>%
+  pivot_longer(cols = c(summAUT, matchingAUT), names_to = "variable", values_to = "value") %>%
+  group_by(perekritia, variable) %>%
+  summarise(total = sum(value))
+
+pAUT_kb <- ggplot(summary_table_AUT_kb, aes(x = variable, y = total, fill = variable)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ perekritia, scales = "free") +
+  labs(x = "Variable", y = "Total Count", fill = "Variable") +
+  ggtitle("Histograms of Kb of unique data in total and with overlaps")
+pAUT_kb
