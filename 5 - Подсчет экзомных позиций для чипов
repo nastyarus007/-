@@ -1,0 +1,37 @@
+import pandas as pd
+
+
+def get_chromosome_df(df, chromosome_name):
+    chromosome_df = df[df['chromosome'] == chromosome_name]
+    chromosome_df = chromosome_df.drop('chromosome', axis=1)
+    return chromosome_df
+
+
+genotek = pd.read_csv('C:/Users/nasty/Downloads/genotek.csv')
+andme = pd.read_csv('C:/Users/nasty/Downloads/andme.csv')
+omni = pd.read_csv('C:/Users/nasty/Downloads/omni.csv')
+humori = pd.read_csv('C:/Users/nasty/Downloads/humori.csv')
+ftdna = pd.read_csv('C:/Users/nasty/Downloads/ftdna.csv')
+exome = pd.read_csv('C:/Users/nasty/Downloads/exome.csv')
+
+df_list = {'genotek': genotek, 'andme': andme, 'omni': omni, 'humori': humori, 'ftdna': ftdna}
+
+for name, frame in df_list.items():
+    print(name)
+    common_count = 0
+    chromosome_range = list(range(1, 23)) + ['X']
+    for chromosome in chromosome_range:
+        chip_chromosome_df = get_chromosome_df(frame, 'chr{0}'.format(chromosome))
+        exome_chromosome_df = get_chromosome_df(exome, 'chr{0}'.format(chromosome))
+        chromosome_count = 0
+        for i in range(0, len(exome_chromosome_df.index)):
+            # print('Processing {0} chromosome {1}/{2}'.format(chromosome, i, len(exome_chromosome_df.index)))
+            condition_result = chip_chromosome_df['position'].between(
+                exome_chromosome_df['start_position'].iloc[i],
+                exome_chromosome_df['end_position'].iloc[i]
+            )
+            condition_count = condition_result.sum()
+            chromosome_count = chromosome_count + condition_count
+        # print('{0} chromosome count: {1}'.format(chromosome, chromosome_count))
+        common_count = common_count + chromosome_count
+    print('Common count: {0}'.format(common_count))
