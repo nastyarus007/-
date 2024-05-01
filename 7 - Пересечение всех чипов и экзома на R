@@ -1,0 +1,62 @@
+exome_df <- read.csv("C:/Users/nasty/Downloads/exome_df.csv")
+exome_df[is.na(exome_df)] <- 0
+View(exome_df)
+
+# та же проверка, но только с суммарным количеством, без разделения на аутосомы и половые и митохондриалку
+selected_columns <- c("genotek", "humori", "exome")
+in_exome <- 0
+
+for (row in 1:nrow(exome_df)) {
+# в зависимости от количества столбцов которое мы сравниваем - меняем selected_columns и сумму, которую они должны давайть при пересечении
+  if (sum(exome_df[row, selected_columns], na.rm = TRUE) == 3) {
+    in_exome <- in_exome + 1
+  }
+}
+  
+cat("Общее количество строк с пересечением с экзомом:", in_exome)
+
+
+
+
+
+## ЛИБО использовать предыдущий код для пересечений, но с внесёнными изменениями:
+# так мы получим и информацию суммарную, и по аутосомам/половым и митохондриалке
+exome_df <- read.csv("C:/Users/nasty/Downloads/exome_df.csv")
+exome_df[is.na(exome_df)] <- 0
+View(exome_df)
+
+# Выбираем нужные столбцы
+selected_columns <- c("humori", "andme", "genotek", "ftdna", "exome")
+
+
+# Переменные для хранения количества совпадений по каждому типу chromosome
+in_exome_other <- 0
+in_exome_chrX <- 0
+in_exome_chrY <- 0
+in_exome_chrMT <- 0
+in_exome <- 0
+
+# Проверяем, есть ли в каждой строке сумма равная количеству сравниваемых объектов
+for (row in 1:nrow(exome_df)) {
+  # Проверяем, что в строке нет пропущенных значений
+  if (sum(exome_df[row, selected_columns], na.rm = TRUE) == 5) {
+    in_exome <- in_exome + 1
+    if (exome_df$chromosome[row] == "chrX") {
+      in_exome_chrX <- in_exome_chrX + 1
+    } else if (exome_df$chromosome[row] == "chrY") {
+      in_exome_chrY <- in_exome_chrY + 1
+    } else if (exome_df$chromosome[row] == "chrMT") {
+      in_exome_chrMT <- in_exome_chrMT + 1
+    } else {
+      in_exome_other <- in_exome_other + 1
+    }
+  }
+}
+
+
+# Выводим результат
+cat("Общее количество строк:", in_exome, "\n",
+    "Где соблюдались для строк chrX:", in_exome_chrX, "\n",
+    "Где соблюдались для строк chrY:", in_exome_chrY, "\n",
+    "Где соблюдались для строк chrMT:", in_exome_chrMT, "\n",
+    "Другие строки:", in_exome_other, "\n")
