@@ -1,0 +1,32 @@
+
+# Читаем файл со всеми известными экзонами в 37 сборке
+exome = fread("C:/Users/nasty/Downloads/EXOME.txt")
+exome <- data.frame(chromosome = exome$V2, start_position = exome$V4, end_position = exome$V5)
+exome <- arrange(exome, chromosome, start_position)
+View(exome)
+
+df <- read.csv("C:/Users/nasty/Downloads/chr-pos.csv")
+df$exome  <- 0
+View(df)
+
+
+write.csv(exome, "C:/Users/nasty/Downloads/exome.csv", row.names = FALSE)
+write.csv(df, "C:/Users/nasty/Downloads/df.csv", row.names = FALSE)
+
+df = fread("C:/Users/nasty/Downloads/df.csv")
+exome = fread("C:/Users/nasty/Downloads/exome.csv")
+View(df)
+
+
+
+genotek <- read.csv("C:/Users/nasty/Downloads/genotek.csv")
+andme <- read.csv("C:/Users/nasty/Downloads/andme.csv")
+omni <- read.csv("C:/Users/nasty/Downloads/omni.csv")
+humori <- read.csv("C:/Users/nasty/Downloads/humori.csv")
+ftdna <- read.csv("C:/Users/nasty/Downloads/ftdna.csv")
+
+View(genotek)
+View(andme)
+View(omni)
+View(humori)
+View(ftdna)
