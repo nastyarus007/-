@@ -1,3 +1,4 @@
+## 1й вариант решения по количеству строк 
 ## Создаём суммарные файлы с уникальными значениями
 ag <- bind_rows(genotek, andme) %>%
   distinct()
@@ -69,6 +70,51 @@ for (i in seq_along(my_match_list)) {
   aut_match_info <- nrow(other)
   cat("X:", X_match_info, "\nY:", Y_match_info, "\nMT:", MT_match_info, "\nAutosome:", aut_match_info, "\n\n")
 }
+
+
+
+## 2й вариант решения по уже созданному df
+
+exome_df <- read.csv("C:/Users/nasty/Downloads/exome_df.csv")
+View(exome_df)
+
+# Выбираем нужные столбцы
+selected_columns <- c("humori", "andme")
+
+
+# Переменные для хранения количества совпадений по каждому типу chromosome
+in_exome_other <- 0
+in_exome_chrX <- 0
+in_exome_chrY <- 0
+in_exome_chrMT <- 0
+
+# Проверяем, есть ли в каждой строке сумма равная количеству сравниваемых объектов
+for (row in 1:nrow(exome_df)) {
+  if (sum(exome_df[row, selected_columns]) == 2) {
+    #in_exome <- in_exome + 1
+    if (exome_df$chromosome[row] == "chrX") {
+      in_exome_chrX <- in_exome_chrX + 1
+    } else if (exome_df$chromosome[row] == "chrY") {
+      in_exome_chrY <- in_exome_chrY + 1
+    } else if (exome_df$chromosome[row] == "chrMT") {
+      in_exome_chrMT <- in_exome_chrMT + 1
+    }
+    else {
+      in_exome_other <- in_exome_other + 1
+    }
+  }
+}
+
+# Выводим результат
+cat("Общее количество строк:", in_exome_other, "\n",
+      "Где соблюдались для строк chrX:", in_exome_chrX, "\n",
+      "Где соблюдались для строк chrY:", in_exome_chrY, "\n",
+      "Где соблюдались для строк chrMT:", in_exome_chrMT, "\n")
+
+
+
+
+
 
 **Далее вручную для ускорения процесса полученные данные поместила в таблицу df_kb**
 df_kb <- data.frame(perekritia, summX, matchingX, summY, matchingY, summMT, matchingMT, summAUT, matchingAUT)
