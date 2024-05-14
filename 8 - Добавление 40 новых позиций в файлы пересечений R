@@ -1,0 +1,79 @@
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Читаем файлы для пересечений
+ftdna <- read.csv("C:/Users/nasty/Downloads/ftdna.csv")
+genotek <- read.csv("C:/Users/nasty/Downloads/genotek.csv")
+andme <- read.csv("C:/Users/nasty/Downloads/andme.csv")
+
+# Создаем попарные пересечения для 3х баз
+# Удаляем строки для хромосом Y и мито:
+ag_match <- intersect(andme, genotek)
+ag_match <- subset(ag_match, chromosome != 'chrY')
+ag_match <- subset(ag_match, chromosome != 'chrMT')
+
+af_match <- intersect(andme, ftdna)
+af_match <- subset(af_match, chromosome != 'chrY')
+af_match <- subset(af_match, chromosome != 'chrMT')
+
+fg_match <- intersect(ftdna, genotek)
+fg_match <- subset(fg_match, chromosome != 'chrY')
+fg_match <- subset(fg_match, chromosome != 'chrMT')
+
+
+View(ag_match)
+View(af_match)
+View(fg_match)
+
+
+# Создаем комбинированный файл для 3х пересечений 
+afg_combined <- bind_rows(ag_match, af_match, fg_match) %>%
+  distinct()
+View(afg_combined)
+
+
+
+
+## Добавление довых 20ти позиций впереди и позади каждой имеющейся в файле точки
+# Нужный файл добавляем в новую переменную 
+original_table <- afg_combined
+
+# Создаем датафрейм с дополнительными позициями
+additional_positions <- lapply(unique(original_table$chromosome), function(chr) {
+  chr_positions <- original_table$position[original_table$chromosome == chr]
+  additional_chr_positions <- c(sapply(chr_positions, function(pos) seq(pos - 20, pos - 1)),
+                                sapply(chr_positions, function(pos) seq(pos + 1, pos + 20)))
+  data.frame(chromosome = rep(chr, length(additional_chr_positions)), position = additional_chr_positions)
+})
+
+additional_positions <- do.call(rbind, additional_positions)
+
+# Объединяем исходную таблицу с дополнительными позициями
+final_table <- rbind(original_table, additional_positions)
+
+# Фильтруем по порядку
+final_table <- arrange(final_table, chromosome, position)
+
+# Выводим результат
+View(final_table)
+
+write.csv(final_table, "C:/Users/nasty/Downloads/afg_41_combined.csv", row.names = FALSE)
+
+
+
+
+
+## Подсчет количества позиций в нужных файлах
+my_list <- list(ag = ag_match, af = af_match, fg = fg_match, afg = afg_combined, final_table = final_table)
+
+for (i in seq_along(my_list)) {
+  # Выводим имя переменной и индекс
+  cat(names(my_list)[i], " ")
+  # Получаем информацию о количестве строк суммарных файлов половых хромосом и митохондриалки
+  aut_info <- nrow(my_list[[i]])
+  cat("SNPs:", aut_info, "\n")
+}
+
+
